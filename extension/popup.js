@@ -14,13 +14,46 @@ function updateUIState(enabled) {
     }
 }
 
+// Detect Firefox
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+if (isFirefox) {
+    const customWrapper = document.getElementById('customColorWrapper');
+    if (customWrapper) customWrapper.style.display = 'none';
+}
+
+function updateColorActiveState(color) {
+    // Update swatches
+    document.querySelectorAll('.color-swatch').forEach(btn => {
+        if (btn.dataset.color.toLowerCase() === color.toLowerCase()) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update custom picker
+    const customInput = document.getElementById('textColor');
+    customInput.value = color;
+    
+    // Check if it's a custom color
+    const isStandard = Array.from(document.querySelectorAll('.color-swatch')).some(btn => btn.dataset.color.toLowerCase() === color.toLowerCase());
+    const customWrapper = document.getElementById('customColorWrapper');
+    if (customWrapper) {
+        if (!isStandard) {
+            customWrapper.classList.add('active');
+        } else {
+            customWrapper.classList.remove('active');
+        }
+    }
+}
+
 // Load current settings
 chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
     document.getElementById('enableToggle').checked = items.enabled;
-    document.getElementById('textColor').value = items.textColor;
     document.getElementById('fontSize').value = items.fontSize;
     document.getElementById('dateFormat').value = items.dateFormat;
     
+    updateColorActiveState(items.textColor);
     updateUIState(items.enabled);
 });
 
@@ -46,14 +79,26 @@ document.getElementById('enableToggle').addEventListener('change', (e) => {
     chrome.storage.sync.set({ enabled: isEnabled });
 });
 
-// Real-time preview for color on input
+// Real-time preview for color on input (Custom Picker)
 document.getElementById('textColor').addEventListener('input', (e) => {
-    sendPreviewMessage('textColor', e.target.value);
+    const newColor = e.target.value;
+    updateColorActiveState(newColor);
+    sendPreviewMessage('textColor', newColor);
 });
 
 // Save to storage only on change (when drag is complete / picker is closed)
 document.getElementById('textColor').addEventListener('change', (e) => {
     chrome.storage.sync.set({ textColor: e.target.value });
+});
+
+// Color Swatch Clicks
+document.querySelectorAll('.color-swatch').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const newColor = e.target.dataset.color;
+        updateColorActiveState(newColor);
+        chrome.storage.sync.set({ textColor: newColor });
+        sendPreviewMessage('textColor', newColor);
+    });
 });
 
 document.getElementById('fontSize').addEventListener('change', (e) => {
@@ -68,10 +113,10 @@ document.getElementById('dateFormat').addEventListener('change', (e) => {
 document.getElementById('resetBtn').addEventListener('click', () => {
     chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
         document.getElementById('enableToggle').checked = DEFAULT_SETTINGS.enabled;
-        document.getElementById('textColor').value = DEFAULT_SETTINGS.textColor;
         document.getElementById('fontSize').value = DEFAULT_SETTINGS.fontSize;
         document.getElementById('dateFormat').value = DEFAULT_SETTINGS.dateFormat;
         
+        updateColorActiveState(DEFAULT_SETTINGS.textColor);
         updateUIState(DEFAULT_SETTINGS.enabled);
         
         // Reset preview as well
