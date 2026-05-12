@@ -53,11 +53,15 @@
     }
     hookAF();
     
-    Object.defineProperty(window, 'AF_initDataCallback', {
-        get: function() { return originalAF; },
-        set: function(val) {
-            originalAF = val;
-            hookAF();
-        }
-    });
+    try {
+        Object.defineProperty(window, 'AF_initDataCallback', {
+            get: function() { return originalAF; },
+            set: function(val) {
+                originalAF = val;
+                hookAF();
+            }
+        });
+    } catch(e) {
+        // Ignore "Cannot redefine property" errors if already defined as non-configurable
+    }
 })();
