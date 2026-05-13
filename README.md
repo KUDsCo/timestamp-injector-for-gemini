@@ -8,6 +8,8 @@ Browser extension to inject timestamps into AI chat interfaces (currently tailor
 - **Customizable**: Adjust text color, font size, and date format via the extension popup.
 - **New message support**: Automatically attaches a timestamp to newly generated messages as they appear.
 
+*Note for Firefox users: Due to a long-standing Firefox extension bug regarding native color pickers in popups, the custom color picker is disabled on Firefox. Only the preset colors are available.*
+
 ## Project Structure
 
 - `extension/` - Source code for the Chrome/Edge/Firefox Browser Extension.
