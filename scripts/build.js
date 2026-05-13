@@ -75,7 +75,7 @@ async function build() {
       gecko: {
         // Replace this with your actual Firefox add-on ID once generated/assigned by AMO.
         // Or keep a domain-based generic ID if you haven't uploaded yet.
-        id: "timestamp-injector-for-gemini@example.com",
+        id: "timestamp-injector-for-gemini@kuds.win",
         strict_min_version: "109.0",
         data_collection_permissions: {
           required: ["none"]
