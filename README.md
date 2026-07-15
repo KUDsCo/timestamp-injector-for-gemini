@@ -14,6 +14,14 @@ Browser extension to inject timestamps into AI chat interfaces (currently tailor
 
 ## Installation
 
+### From the store
+
+- **Chrome**: [Chrome Web Store](https://chromewebstore.google.com/detail/timestamp-injector-for-ge/onanhdgcojiopbbokcfkjafpebbmapcn)
+- **Firefox**: [Firefox Add-ons (AMO)](https://addons.mozilla.org/uk/firefox/addon/timestamp-injector-for-gemini/)
+- **Edge**: [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/timestamp-injector-for-ge/leanejedojdajemfoacfpljdggeloobf?hl=en-US)
+
+### From source (unpacked)
+
 1. Clone or download this repository.
 2. Open your browser and go to the extensions page (`chrome://extensions/` or `edge://extensions/`).
 3. Enable **Developer mode**.
