@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Timestamp Injector for Gemini",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "permissions": [
     "storage"
   ],
@@ -20,15 +20,25 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://gemini.google.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "inject.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["inject.js"],
-      "matches": ["https://gemini.google.com/*"]
-    }
-  ]
+  "description": "Displays the recorded time of each Gemini turn in your preferred date and time format.",
+  "minimum_chrome_version": "111"
 }

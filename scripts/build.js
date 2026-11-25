@@ -71,12 +71,13 @@ async function build() {
   // 2. Build Firefox (modify manifest to add browser_specific_settings)
   console.log('Building for Firefox...');
   await zipDirectory(extensionDir, path.join(distDir, `firefox-v${version}.zip`), (manifestObj) => {
+    delete manifestObj.minimum_chrome_version;
     manifestObj.browser_specific_settings = {
       gecko: {
         // Replace this with your actual Firefox add-on ID once generated/assigned by AMO.
         // Or keep a domain-based generic ID if you haven't uploaded yet.
         id: "timestamp-injector-for-gemini@kuds.win",
-        strict_min_version: "109.0",
+        strict_min_version: "128.0",
         data_collection_permissions: {
           required: ["none"]
         }

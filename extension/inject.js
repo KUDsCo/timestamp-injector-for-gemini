@@ -1,67 +1,63 @@
-(function() {
-    const originalParse = JSON.parse;
-    
-    function extractTimestamps(data) {
-        if (!Array.isArray(data)) return;
-        
-        try {
-            if (data.length >= 2 && Array.isArray(data[0]) && data[0].length >= 2 && 
-                typeof data[0][0] === 'string' && data[0][0].startsWith('c_') &&
-                typeof data[0][1] === 'string' && data[0][1].startsWith('r_')) {
-                
-                const turnId = data[0][1].replace('r_', '');
-                
-                for (let i = data.length - 1; i >= Math.max(0, data.length - 3); i--) {
-                    const el = data[i];
-                    if (Array.isArray(el) && el.length >= 2 && typeof el[0] === 'number' && el[0] > 1000000000 && typeof el[1] === 'number') {
-                        window.dispatchEvent(new CustomEvent('gemini-timestamp-extracted', {
-                            detail: { id: turnId, timestamp: el[0] }
-                        }));
-                        break;
-                    }
+// Runs before the page parses its initial or paginated history.
+(() => {
+    const parse = JSON.parse;
+    function isTimestamp(value) {
+        return Array.isArray(value) && value.length === 2 &&
+            Number.isInteger(value[0]) && value[0] >= 1000000000 && value[0] <= 253402300799 &&
+            Number.isInteger(value[1]) && value[1] >= 0 && value[1] < 1000000000;
+    }
+
+    function collect(data) {
+        const stack = [data];
+        const turns = [];
+        while (stack.length) {
+            const row = stack.pop();
+            if (!Array.isArray(row)) continue;
+            if (Array.isArray(row[0]) && typeof row[0][0] === 'string' &&
+                    typeof row[0][1] === 'string' && /^c_[\da-f]+$/i.test(row[0][0]) &&
+                    /^r_[\da-f]+$/i.test(row[0][1])) {
+                // Current history rows retain trailing metadata after the timestamp.
+                // Older records expose a timestamp within the last three fields.
+                const legacy = isTimestamp(row[4]) ? [] : row.slice(-3).filter(isTimestamp);
+                const stamp = isTimestamp(row[4]) ? row[4] : legacy.length === 1 && legacy[0];
+                if (stamp) {
+                    turns.push([row[0][1].slice(2), stamp[0]]);
                 }
             }
-        } catch(e) {}
-        
-        for (let i = 0; i < data.length; i++) {
-            if (Array.isArray(data[i])) {
-                extractTimestamps(data[i]);
+            for (const child of row) {
+                if (Array.isArray(child)) stack.push(child);
             }
+        }
+        if (turns.length) {
+            // A string is readable from Firefox's isolated content script.
+            window.dispatchEvent(new CustomEvent('gemini-timestamp-extracted', {
+                detail: JSON.stringify(turns)
+            }));
         }
     }
 
-    JSON.parse = function() {
-        const result = originalParse.apply(this, arguments);
-        if (Array.isArray(result)) {
-            extractTimestamps(result);
-        }
+    JSON.parse = function (...args) {
+        const result = parse.apply(this, args);
+        if (Array.isArray(result) && typeof args[1] !== 'function') collect(result);
         return result;
     };
 
-    let originalAF = window.AF_initDataCallback;
-    function hookAF() {
-        if (typeof originalAF === 'function' && !originalAF.__hooked) {
-            const func = originalAF;
-            originalAF = function(params) {
-                if (params && params.data) {
-                    extractTimestamps(params.data);
-                }
-                return func.apply(this, arguments);
-            };
-            originalAF.__hooked = true;
-        }
+    // Some initial history arrives as inline bootstrap data.
+    function wrap(callback) {
+        if (typeof callback !== 'function') return callback;
+        return function (...args) {
+            if (Array.isArray(args[0]?.data)) collect(args[0].data);
+            return callback.apply(this, args);
+        };
     }
-    hookAF();
-    
+    let callback = wrap(window.AF_initDataCallback);
     try {
         Object.defineProperty(window, 'AF_initDataCallback', {
-            get: function() { return originalAF; },
-            set: function(val) {
-                originalAF = val;
-                hookAF();
-            }
+            configurable: true,
+            get: () => callback,
+            set: value => { callback = wrap(value); }
         });
-    } catch(e) {
-        // Ignore "Cannot redefine property" errors if already defined as non-configurable
+    } catch {
+        // Already defined by the page. JSON history can still be observed.
     }
 })();
