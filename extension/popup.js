@@ -2,7 +2,8 @@ const DEFAULT_SETTINGS = {
     enabled: true,
     textColor: '#888888',
     fontSize: '0.875rem',
-    dateFormat: 'YYYY/MM/DD HH:mm:ss'
+    dateFormat: 'YYYY/MM/DD HH:mm:ss',
+    hourCycle: '24'
 };
 
 function updateUIState(enabled) {
@@ -52,6 +53,7 @@ chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
     document.getElementById('enableToggle').checked = items.enabled;
     document.getElementById('fontSize').value = items.fontSize;
     document.getElementById('dateFormat').value = items.dateFormat;
+    document.getElementById('hourCycle').value = items.hourCycle;
     
     updateColorActiveState(items.textColor);
     updateUIState(items.enabled);
@@ -109,12 +111,17 @@ document.getElementById('dateFormat').addEventListener('change', (e) => {
     chrome.storage.sync.set({ dateFormat: e.target.value });
 });
 
+document.getElementById('hourCycle').addEventListener('change', (e) => {
+    chrome.storage.sync.set({ hourCycle: e.target.value });
+});
+
 // Reset Button
 document.getElementById('resetBtn').addEventListener('click', () => {
     chrome.storage.sync.set(DEFAULT_SETTINGS, () => {
         document.getElementById('enableToggle').checked = DEFAULT_SETTINGS.enabled;
         document.getElementById('fontSize').value = DEFAULT_SETTINGS.fontSize;
         document.getElementById('dateFormat').value = DEFAULT_SETTINGS.dateFormat;
+        document.getElementById('hourCycle').value = DEFAULT_SETTINGS.hourCycle;
         
         updateColorActiveState(DEFAULT_SETTINGS.textColor);
         updateUIState(DEFAULT_SETTINGS.enabled);

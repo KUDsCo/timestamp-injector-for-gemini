@@ -4,9 +4,9 @@ Browser extension to inject timestamps into AI chat interfaces (currently tailor
 
 ## Features
 
-- Displays timestamps for each message in Gemini.
+- Gemini が記録した各ターンの日時を、質問と回答の下に表示します。両方に同じターンの日時を使います。
 - **Customizable**: Adjust text color, font size, and date format via the extension popup.
-- **New message support**: Automatically attaches a timestamp to newly generated messages as they appear.
+- 12時間（AM/PM）と24時間を切り替えられます。日時が届いていないターンは空欄になり、履歴の読み込み後に表示されます。
 
 ## Project Structure
 
